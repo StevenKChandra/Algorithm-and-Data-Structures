@@ -1,4 +1,4 @@
-def Djikstra_Algortihm(graph, source):
+def Djikstra_Algorithm(graph, source):
     
     def _initialize ():
         nonlocal graph, source, vertex_count
@@ -31,7 +31,7 @@ def Djikstra_Algortihm(graph, source):
             Q.insert(new_distance, destination)
     
     from Data_Structures import PriorityQueue, RedBlackTree
-    
+
     vertex_count = len(graph)
     distance, path = _initialize()
     weight = _weightmatrix(graph)
@@ -51,3 +51,51 @@ def Djikstra_Algortihm(graph, source):
                 _relax(u, v)
     path[source] = [source]
     return distance, path
+
+def FloydWarshall_Algorithm(Graph):
+    n = len(Graph)
+    D = [Graph]
+    P = []
+    for i in range(n):
+        p = []
+        for j in range(n):
+            if i == j or Graph[i][j] == float("inf"):
+                p.append(None)
+            else:
+                p.append(i)
+        P.append(p)
+    P = [P]
+
+    for k in range(n):
+        d = [[None for x in range (n)] for y in range(n)]
+        p = [[None for x in range (n)] for y in range(n)]
+        for i in range(n):
+            for j in range(n):
+                new_distance = D[k][i][k] + D[k][k][j]
+                if D[k][i][j] > new_distance:
+                    d[i][j] = new_distance
+                    p[i][j] = P[k][k][j]
+                else:
+                    d[i][j] = D[k][i][j]
+                    p[i][j] = P[k][i][j]
+        D.append(d)
+        P.append(p)
+    path = []
+    for i in range(n):
+        p = []
+        for j in range(n):
+            if i == j:
+                pp = [i]
+            else:
+                k = P[n][i][j]
+                if k != None:
+                    pp = [k]
+                    while k != i:
+                        k = P[n][i][k]
+                        pp.append(k)
+                else:
+                    pp = []
+            p.append(pp[::-1])
+        path.append(p)
+
+    return D[n], path
