@@ -1,5 +1,5 @@
-### Djikstra's Algorithm to find a single source to other nodes 
-def Djikstra_Algorithm(graph, source):
+### Dijkstra's Algorithm to find a single source to other nodes 
+def Dijkstra_Algorithm(graph, source):
     
     ### AUXILIARY FUNCTIONS ###
     ### initialize the distance and path placeholder
