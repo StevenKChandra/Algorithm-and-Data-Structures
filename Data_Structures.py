@@ -674,3 +674,89 @@ class RedBlackTree:
 
     def check_redblack_property(self):
         self.root.check_redblack_property()
+
+class Graph():
+
+    ### initialization function, expects an integer which is the number of vertices
+    def __init__(self, NumberOfVertices):
+
+        # set all the edge weights in adjacency matrix to infinite (infinity weight here means the edged does not exist) or zero for all vertex to itself 
+        self.__AdjacencyMatrix = [[float("inf") if i!=j else 0.0 for i in range(NumberOfVertices)] for j in range(NumberOfVertices)]
+
+        # create a list that maps vertex index (int) to its name (int). set the default values (its index)
+        self.__VertexName = [str(i) for i in range(NumberOfVertices)]
+
+        # save the number of vertices
+        self.__NumberOfVertices = NumberOfVertices
+
+    ### the two function below returns and sets the vertex name given the vertex index
+    def GetNodeName(self, VertexIndex):
+        return self.__VertexName[VertexIndex]
+    
+    def SetNodeName(self, VertexIndex, VertexName):
+        self.__VertexName[VertexIndex] = VertexName
+
+    ### the two function below returns and sets the vertex weight given the source vertex and the destination vertex
+    def GetEdgeWeight(self, source, destination):
+        return self.__AdjacencyMatrix[source][destination]
+    def SetEdgeWeight(self, source, destination, weight):
+        self.__AdjacencyMatrix[source][destination] = weight
+    
+    ### the two function below returns the number of vertices and edges
+    def VerticesCount(self):
+        return self.__NumberOfVertices
+    def EdgesCount(self):
+        count = 0
+        for source in range(self.__NumberOfVertices):
+            for destination in range(source+1, self.__NumberOfVertices):
+                if self.__AdjacencyMatrix[source][destination] != float("inf") and self.__AdjacencyMatrix[source][destination] != float(0.0):
+                    count += 1
+        return count
+    
+    ### function to check if the given source vertex and destination vertex is adjacent
+    def IsAdjacent(self, source, destination):
+        return self.__AdjacencyMatrix[source][destination] != 0.0 and self.__AdjacencyMatrix[source][destination] != float("inf")
+
+    ### function that returns the neighbor indices of a given source node
+    def FindNeighbors(self, source):
+        neighbors = []
+
+        # iterate through the adjacency matrix
+        for neighbor in self.__AdjacencyMatrix[source]:
+
+            # if the neighbors
+            if neighbor != float("inf") and neighbor!=0.0:
+                neighbors.append(neighbor)
+        return neighbors
+    
+    ### function to generate random edges in a graph, the function assumes the current graph does not have any edges
+    def GenerateRandomEdges(self, GraphDensity, MinDistance, MaxDistance, IsDirectedGraph = False):
+
+        # density (float) is the ratio of existing edges (not including edges from vertex to itself) and (number of vertices - 1) squared
+        # MinDistace and MaxDistance (floats) are the range of the distance generated
+        # IsDirected is the number of
+        from random import random, uniform
+
+        # iterate through the adjacency matrix
+        for source in range(self.__NumberOfVertices):
+            for destination in range(source+1, self.__NumberOfVertices):
+
+                # generate random float [0,1] if smaller or equal to the density, generate an edge
+                if random() <= GraphDensity:
+
+                    # set the distance between min and max distance
+                    self.__AdjacencyMatrix[source][destination] = uniform(MinDistance, MaxDistance)
+                    
+                    # if the graph is directed
+                    if IsDirectedGraph:
+
+                        # repeat the edge generation process for the mirroring position in the matrix
+                        if random() >= GraphDensity:
+                            self.__AdjacencyMatrix[destination][source] = uniform(MinDistance, MaxDistance)
+                    
+                    # if the graph is not directed
+                    else:
+
+                        # set the same distance for the mirroring position in the matrix
+                        self.__AdjacencyMatrix[destination][source] = self.__AdjacencyMatrix[source][destination]
+
