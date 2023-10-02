@@ -1,12 +1,12 @@
 ### Dijkstra's Algorithm to find a single source to other nodes 
-def Dijkstra_Algorithm(graph, source):
+def Dijkstra_Algorithm(InputGraph, source):
     
     ### AUXILIARY FUNCTIONS ###
     ### initialize the distance and path placeholder
     def _initialize ():
 
         # call the required main function's variables
-        nonlocal graph, source, vertex_count
+        nonlocal source, vertex_count
 
         # create empty dictionary for distance and path
         d = {}
@@ -20,52 +20,22 @@ def Dijkstra_Algorithm(graph, source):
             
             # set the path to all vertex to an empty list
             p[vertex] = []
-        
+
         # set the distance to the source as 0
-        d[source] = 0
+        d[source] = 0.0
 
         # return the dictionaries
         return d, p
     
-    ### create an adjacency matrix with where direct path weight from source to destination is AdjacencyMatrix[source][destination]
-    def _Create_AdjacencyMatrix(graph):
-        
-        # call the required main function's variables
-        nonlocal vertex_count
-
-        # if the input is already an adjacency matrix
-        if vertex_count == len(graph[0]) and (isinstance(graph[0][0], int) or isinstance(graph[0][0], float)):
-           
-           # return the adjacency matrix
-           return graph
-        
-        # if the input is an adjacency list
-        else:
-
-            # create a placeholder for the adjacency matrix where all direct path's weight is infinite
-            AdjacencyMatrix = [[float("inf") for i in range(vertex_count)] for y in range(vertex_count)]
-
-            # iterate through the adjacency list
-            for source in range (vertex_count):
-                for destination, weight in graph[source]:
-
-                    # replace the weight in adjacency matrix with the weight from the adjacency list
-                    AdjacencyMatrix[source][destination] = weight
-                
-                # set the weight from and to the same vertex to 0
-                AdjacencyMatrix [source][source] = 0
-            
-            # return the adjacency matrix
-            return AdjacencyMatrix
     
     ### relaxation function to update the minimum distance and the path to a vertex
     def _relax(source, destination):
 
         # call the required main function's variables
-        nonlocal distance, path, AdjacencyMatrix, Q
+        nonlocal distance, path, InputGraph, Q
 
         # calculate the new path distance, total distance when using the intermediate vertex to the destination  
-        new_distance = distance[source] +  AdjacencyMatrix[source][destination]
+        new_distance = distance[source] +  InputGraph.GetEdgeWeight(source, destination)
 
         # if the new path distance is lower than the old path distance
         if distance[destination] > new_distance:
@@ -83,20 +53,16 @@ def Dijkstra_Algorithm(graph, source):
     from Data_Structures import PriorityQueue, RedBlackTree
 
     # count the number of vertex
-    vertex_count = len(graph)
+    vertex_count = InputGraph.VerticesCount()
 
     # create a placeholder for the distance and path to all destination
     distance, path = _initialize()
-
-    # create an adjacency matrix of the graph
-    AdjacencyMatrix = _Create_AdjacencyMatrix(graph)
 
     # create a priority queue
     Q = PriorityQueue()
 
     # fill the queue with distance as key and destination as value
-    for vertex in range(vertex_count):
-        Q.insert(distance[vertex], vertex)
+    Q.insert(distance[source], source)
 
     # create a red-black tree
     S = RedBlackTree()
@@ -105,10 +71,10 @@ def Dijkstra_Algorithm(graph, source):
     while not Q.is_empty():
 
         # pull the vertex with minimum distance from the last vertex
-        source = Q.extract_minimum().value
+        intermediate = Q.extract_minimum().value
 
         # check if the vertex has been visited
-        if S.search(source):
+        if S.search(intermediate):
 
             # if yes, then the shortest path using this vertex as an intermediate vertex has been visited
             continue
@@ -117,65 +83,30 @@ def Dijkstra_Algorithm(graph, source):
         else:
 
             # save the intermediate vertex to the search tree
-            S.insert(source, None)
+            S.insert(intermediate, None)
 
             # try to go to all vertex from this intermediate vertex
             for destination in range(vertex_count):
                 
                 # relax the distance and path from the intermediate vertex to the destination
-                _relax(source, destination)
-    
-    # set the path from a vertex to itself
-    path[source] = [source]
+                _relax(intermediate, destination)
+
+    # set the path to source 
+    path[source] = source
 
     # return the distance and path from source to all other vertex
     return distance, path
 
 ### Floyd-Warshall Algorithm to find the shortest paths for all source to other nodes
-def FloydWarshall_Algorithm(Graph):
-    
-    ### AUXILIARY FUNCTIONS ###
-    ### create an adjacency matrix with where direct path weight from source to destination is AdjacencyMatrix[source][destination]
-    def _Create_AdjacencyMatrix(graph):
-        
-        # call the required main function's variables
-        nonlocal vertex_count
-
-        # if the input is already an adjacency matrix
-        if vertex_count == len(graph[0]) and (isinstance(graph[0][0], int) or isinstance(graph[0][0], float)):
-           
-           # return the adjacency matrix
-           return graph
-        
-        # if the input is an adjacency list
-        else:
-
-            # create a placeholder for the adjacency matrix where all direct path's weight is infinite
-            AdjacencyMatrix = [[float("inf") for i in range(vertex_count)] for y in range(vertex_count)]
-
-            # iterate through the adjacency list
-            for source in range (vertex_count):
-                for destination, weight in graph[source]:
-
-                    # replace the weight in adjacency matrix with the weight from the adjacency list
-                    AdjacencyMatrix[source][destination] = weight
-                
-                # set the weight from and to the same vertex to 0
-                AdjacencyMatrix [source][source] = 0
-            
-            # return the adjacency matrix
-            return AdjacencyMatrix
+def FloydWarshall_Algorithm(InputGraph):
     
     ### MAIN CODE ###
     # count the number of vertex
-    vertex_count = len(Graph)
-
-    # create an adjacency matrix from the input graph
-    Graph = _Create_AdjacencyMatrix(Graph)
+    vertex_count = InputGraph.VerticesCount()
 
     # create a placeholder for the distance and the path
-    D = [Graph]
-    P = [[None if i == j or Graph[i][j] == float("inf") else i for j in range(vertex_count)] for i in range(vertex_count)]
+    D = [[[InputGraph.GetEdgeWeight(i, j) for j in range(vertex_count)] for i in range(vertex_count)]]
+    P = [[[None if i == j or D[0][i][j] == float("inf") else i for j in range(vertex_count)] for i in range(vertex_count)]]
 
     # iterate the adjacency list using k as our intermeidate vertex
     for k in range(vertex_count):

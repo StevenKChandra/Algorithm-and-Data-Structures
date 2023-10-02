@@ -22,7 +22,7 @@ class PriorityQueue:
     ### function to insert an node to the Priority Queue
     def insert(self, key, value):
         
-        key = str(key)
+        # key = str(key)
 
         # add the node at the end of the array
         self.container.append(self.PriorityQueue_Node(key, value))
@@ -122,7 +122,7 @@ class PriorityQueue:
 
         # if current node key is larger than right child key:
         if right <= self.len:
-            if self.container[index-1].key > self.container[right-1].key:
+            if self.container[smallest-1].key > self.container[right-1].key:
 
                 # set smallest index to the right child
                 smallest = right
@@ -708,7 +708,7 @@ class Graph():
     def EdgesCount(self):
         count = 0
         for source in range(self.__NumberOfVertices):
-            for destination in range(source+1, self.__NumberOfVertices):
+            for destination in range(self.__NumberOfVertices):
                 if self.__AdjacencyMatrix[source][destination] != float("inf") and self.__AdjacencyMatrix[source][destination] != float(0.0):
                     count += 1
         return count
@@ -742,21 +742,21 @@ class Graph():
             for destination in range(source+1, self.__NumberOfVertices):
 
                 # generate random float [0,1] if smaller or equal to the density, generate an edge
-                if random() <= GraphDensity:
+                if uniform(0, 1) <= GraphDensity:
 
                     # set the distance between min and max distance
                     self.__AdjacencyMatrix[source][destination] = uniform(MinDistance, MaxDistance)
                     
-                    # if the graph is directed
-                    if IsDirectedGraph:
+                # if the graph is directed
+                if IsDirectedGraph:
 
-                        # repeat the edge generation process for the mirroring position in the matrix
-                        if random() >= GraphDensity:
-                            self.__AdjacencyMatrix[destination][source] = uniform(MinDistance, MaxDistance)
-                    
-                    # if the graph is not directed
-                    else:
+                    # repeat the edge generation process for the mirroring position in the matrix
+                    if uniform(0, 1) <= GraphDensity:
+                        self.__AdjacencyMatrix[destination][source] = uniform(MinDistance, MaxDistance)
+                
+                # if the graph is not directed
+                else:
 
-                        # set the same distance for the mirroring position in the matrix
-                        self.__AdjacencyMatrix[destination][source] = self.__AdjacencyMatrix[source][destination]
+                    # set the same distance for the mirroring position in the matrix
+                    self.__AdjacencyMatrix[destination][source] = self.__AdjacencyMatrix[source][destination]
 
