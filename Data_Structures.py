@@ -1,153 +1,351 @@
+from typing import Self
+
 class PriorityQueue:
+    """Priority Queue/ Min-Heap Data Structure.
+    
+    Priority Queue is a data structure of binary tree with heap property
+    """
+    
+    # Representation invariant:
+    #   container : - contains the elements of the priority queue
+    #               - there is no empty elements in the list.
+    #               - key of element at index i is lower compared to 
+    #                 the key of elements at index 2*i + 1 and 2*i + 2.
 
-    ### ON START ###
-    def __init__(self):
+    #   _value_to_index: a mapping of value to its index in the
+    #                    container list.
+    
+    # Absraction function:
+    #   AF(container): priority queue nodes stored in a list,
+    #                  where the children of node stored at index i
+    #                  are stored at index 2*i + 1 and 2*i + 2 and
+    #                  the root is stored at index 0.
 
-        # set container as empty array and its length to 0
-        self.container = []
-        self.len = 0
+    # Safety from rep exposure:
+    #   all the methods do not return a pointer to the representation
 
-    ### Define a nested class, the node of a priority queue
-    class PriorityQueue_Node:
-        
-        ### takes an argument of key value pair
-        def __init__(self, key, value):
+    def __init__(self) -> None:
+        """Initializes a Priority Queue."""
+        self._container: list = []
+        self._value_to_index: set = {}
 
-            # set the key and value attribute
+    class PriorityQueueNode:
+        def __init__(self, key: int|float, value) -> None:
+            """Initializes a node for Priority Queue that stores the
+            key and value pair.
+
+            Args:
+            key: takes an integer / float as the key.
+            value: any immutable data types.
+            """
             self.key = key
             self.value = value
 
     ### MAIN FUNCTIONS ###
 
-    ### function to insert an node to the Priority Queue
-    def insert(self, key, value):
+    def insert(self, key: int|float, value) -> None:
+        """Insert a key and value pair to the Priority Queue.
         
-        # key = str(key)
+        Preconditions:
+        - Assumes no duplicate values
 
-        # add the node at the end of the array
-        self.container.append(self.PriorityQueue_Node(key, value))
+        Args:
+        key: takes an integer / float as the key.
+        value: any immutable datatypes.
+        """
 
-        # add 1 the array length 
-        self.len += 1
+        self._container.append(self.PriorityQueueNode(key, value))
+        index = len(self)
+        self._value_to_index[value] = index
+        self._heapify_up(index)
 
-        # set current index as the array length
-        index = self.len
-
-        # find the parent's index of the current node's index
-        parent = self._parent(index)
-
-        # check if the current node key is smaller than its parrents key and the current node is not the root
-        while index > 1 and self.container[index-1].key < self.container[parent-1].key:
-            
-            # swap the current node to its parent
-            self.container[index-1], self.container[parent-1] = self.container[parent-1], self.container[index-1]
-
-            # set the current node's index as its parrent's index and parent's index as current node's grandparent's index
-            index, parent = parent, self._parent(parent)
-
-    ### function to remove and return the node with minimum key
     def extract_minimum(self):
-        
-        # check if the Priority Queue is empty
-        if not len(self.container):
+        """Returns the value of key value pair with minimum key and
+        removes the said key value pair.
+
+        Returns:
+        None if the Priority Queue is empty.
+        the value of key value pair that has the lowest key otherwise.
+        """
+        if len(self) == 0:
             print("Queue is empty")
-
         else:
+            min = self._container[0]
 
-            # set the minimum node as first node
-            min = self.container[0]
-            
-            # swap the first node with the last node
-            self.container[0] = self.container[-1]
+            self._container[0] = self._container[-1]
+            self._value_to_index[self._container[0]] = 0
 
-            # delete the last node and substract 1 from the array length
-            self.container = self.container[:-1]
-            self.len -= 1
+            self._container = self._container[:-1]
+            self._heapify_down(1)
 
-            # perform heapify to the first node
-            self._heapify(1)
-
-            # return the minimum node
-            return min
+            return min.value
     
-    ### function to return the node with minimum key
+    
     def minimum(self):
+        """Returns the value of key value pair that has the lowest key.
 
-        # check if the Priority Queue is empty
-        if not len(self.container):
+        Returns:
+        None if the Priority Queue is empty.
+        the value of key value pair that has the lowest key otherwise.
+        """
+        if self.is_empty(self):
             print("Queue is empty")
-
         else:
+            return self._container[0].value
 
-            # return the first node
-            return self.container[0]
+    """Reduce a key of a value"""
+    def decrease_key(self, value, new_key: int|float)->None:
+        index = self._value_to_index[value]
+        if self._container[index-1].key > new_key:
+            self._container[index-1].key = new_key
+            self._heapify_up(index)
 
-    ### function to reduce the key of node i
-    def decrease_key(self, index, key):
+    def is_empty(self) -> bool:
+        """Check if the Priority Queue is empty.
+
+        Returns: 
+        true iff the Priority Queue has no element
+        """
+        return len(self) == 0
         
-        # if the new key is lower than the old key
-        if self.container[index-1].key > key:
-            
-            # replace the key
-            self.container[index-1].key = key
-            
-            # perform heapify
-            self._heapify(index)
-
-    ### function to check if the Queue is emtpy
-    def is_empty(self):
-        if self.len:
-            return False
-        else:
-            return True
-        
+    def __len__(self) -> int:    
+        """Overload for function len()
+        Returns:
+        the number of element in the Priority Queue"""
+        return len(self._container)
+    
     ### AUXILIARY FUNCTIONS ###
 
-    ### fuction to "bubble" a node down if it is larger than one of its children
-    def _heapify(self, index):
-
-        # set the smallest node index to current index
-        smallest = index
-
-        # find the node left child and right child index
+    def _heapify_down(self, index: int) -> None:
+        """Pefroms "bubble down" on the node at index,
+        if it is larger than one of its children."""
         left = self._left(index)
         right = self._right(index)
 
-        # if current node key is larger than left child key:
-        if left <= self.len:
-            if self.container[index-1].key > self.container[left-1].key:
-
-                # set smallest index to the left child
+        # compare current node's key with left and right child's key,
+        # find the index of element with smallest key
+        smallest = index
+        if left <= len(self):
+            if self._container[smallest-1].key > self._container[left-1].key:
                 smallest = left
-
-        # if current node key is larger than right child key:
         if right <= self.len:
-            if self.container[smallest-1].key > self.container[right-1].key:
-
-                # set smallest index to the right child
+            if self._container[smallest-1].key > self._container[right-1].key:
                 smallest = right
         
-        # if the current node is  is larger than one of its children
         if smallest != index:
+            placeholder = self._container[index-1]
+            self._container[index-1] = self._container[smallest-1]
+            self._container[smallest-1] = placeholder
+            self._update_value_to_index(index)
+            self._update_value_to_index(smallest)
+            self._heapify_down(smallest)
 
-            # swap the node with the said children
-            self.container[index-1], self.container[smallest-1] = self.container[smallest-1], self.container[index-1]
-            
-            # perform heapify recursively to the children 
-            self._heapify(smallest)
-    
-    # function to return the parent's index of an index
-    def _parent(self, index):
+    def _heapify_up(self, index:int) -> None:
+        """Pefroms "bubble up" on the node at index, if it is smaller
+        than its parent."""
+        if index == 1:
+            return
+        parent_index = self._parent(index)
+        if self._container[index-1].key < self._container[parent_index-1].key:
+            placeholder = self._container[index-1]
+            self._container[index-1] = self._container[parent_index-1]
+            self._container[parent_index-1] = placeholder
+            self._update_value_to_index(index)
+            self._update_value_to_index(parent_index)
+            self._heapify_up(parent_index)
+
+    def _parent(self, index: int) -> int:
+        "Returns the parent's index given an element's index"
         return index // 2
     
-    # function to return the left child's index of an index
-    def _left(self, index):
+    def _left(self, index: int) -> int:
+        """"Returns the left child's index given an element's index"""
         return index * 2
     
-    # function to return the right child's index of an index
-    def _right(self, index):
+    def _right(self, index: int) -> int:
+        """Returns the right child's index given an element's index"""
         return index * 2 + 1
+    
+    def _update_value_to_index(self, index: int) -> None:
+        """Updates the value to index mapping"""
+        self._value_to_index[self._container[index-1]] = index
 
+class BinomialHeap:
+    """Binomial Heap data structure.
+    
+    Binomial heap is a collection of binomial trees that is heap ordered
+    (all node's key is smaller than its children's key)
+    A binomial tree with degree k (k is the number of the root's node
+    children) have 2^k nodes."""
+
+    class BinomialTreeNode:
+        """A node of binomial tree.
+        
+        Attributes: 
+        a pointer to its parent node
+        a key
+        a pointer to value / value
+        a degree value (number of children)
+        a pointer to its leftmost child
+        a pointer to its sibling on its immediate right"""
+
+        def __init__(self, key: int|float, value) -> None:
+            self.key: int|float = key
+            self.value: any = value
+            self.parent: Self|None = None
+            self.degree: int = 0
+            self.child: Self|None = None
+            self.sibling: Self|None = None
+    
+    def __init__(self) -> None:
+        self._head: self.BinomialTreeNode = None
+        self._len: int = 0
+
+    def is_empty(self) -> bool:
+        return len(self) == 0
+    
+    def minimum(self):
+        if (len(self) == 0):
+            print("Binomial heap is empty.")
+            return
+        val = None
+        pointer = self._head
+        min_key = float("inf")
+        while (pointer != None):
+            if min_key > val.key:
+                min_key = val.key
+                val = pointer.val
+        return val
+    
+    def insert(self, key: int|float, value) -> None:
+        heap = BinomialHeap()
+        head = self.BinomialTreeNode(key, value)
+        heap._head = head
+        heap._len = 1
+        heap = self + heap
+        self._head = heap._head
+        self._len = heap._len
+
+    def _binomial_heap_merge(self, other):
+        if self.is_empty() or other.is_empty():
+            return self if other.is_empty() else other
+        
+        new_head = self.BinomialTreeNode(0, None)
+        pointer = new_head
+
+        while (self._head != None and other._head != None):
+            if self._head.degree < other._head.degree:
+                pointer.sibling = self._head
+                self._head = self._head.sibling
+                pointer = pointer.sibling
+            else:
+                pointer.sibling = other._head
+                other._head = other._head.sibling
+                pointer = pointer.sibling
+
+        pointer.sibling = other._head if self._head == None else self._head
+        self._head = new_head.sibling
+        self._len += other._len
+
+        return self
+    
+    def __add__(self, other):
+        heap = self._binomial_heap_merge(other)
+        if (heap._head == None):
+            return heap
+        prev_x = None
+        x = heap._head
+        next_x = x.sibling
+        while (next_x != None):
+            if (x.degree != next_x.degree or 
+                (next_x.sibling != None and 
+                 next_x.sibling.degree == x.degree)):
+                prev_x = x
+                x = next_x
+            elif (x.key <= next_x.key):
+                x.sibling = next_x.sibling
+                self._binomial_link(next_x, x)
+            else:
+                if prev_x == None:
+                    heap._head = next_x
+                else:
+                    prev_x.sibling = next_x
+                self._binomial_link(x, next_x)
+                x = next_x
+            next_x = x.sibling
+        return heap
+    
+    def find_min(self):
+        if len(self) == 0:
+            print("heap is empty")
+
+        minimum = float('inf')
+        minimum_node = None
+
+        x = self._head
+        while x != None:
+            if x.key < minimum:
+                minimum = x.key
+                minimum_node = x
+            x = x.sibling
+
+        return minimum_node.value
+    
+    def extract_min(self):
+        if len(self) == 0:
+            print("heap is empty")
+
+        minimum = float('inf')
+        minimum_node = None
+
+        x = self._head
+        while x != None:
+            if x.key < minimum:
+                minimum = x.key
+                minimum_node = x
+            x = x.sibling
+
+        if minimum_node == self._head:
+            self._head = minimum_node.sibling
+        else:
+            while x.sibling != minimum_node:
+                x = x.sibling
+            x.sibling = x.sibling.sibling
+
+        self._len -= 2 ** minimum_node.degree
+
+        if minimum_node.child == None:
+            return
+
+        new_heap = BinomialHeap()
+        previous = None
+        current = minimum_node.child
+        next = current.sibling
+        while next != None:
+            current.parent = None
+            current.sibling = previous
+            new_heap._len += 2 ** current.degree
+            previous = current
+            current = next
+            next = next.sibling
+        current.parent = None
+        current.sibling = previous
+        new_heap._len += 2 ** current.degree
+        new_heap._head = current
+
+        new_heap = self + new_heap
+        self._head = new_heap._head
+        self._len = new_heap._len
+
+    def _binomial_link(self, x, y):
+        x.parent = y
+        x.sibling = y.child
+        y.child = x
+        y.degree += 1
+
+    def __len__(self) -> int:
+        return self._len
+    
 class RedBlackTree:
 
     ### ON START ###
