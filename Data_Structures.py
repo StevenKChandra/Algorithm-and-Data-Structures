@@ -1,65 +1,241 @@
-from typing import Self
+from typing import Self, List, Set, Hashable, Dict, Any
 
-class PriorityQueue:
-    """Priority Queue/ Min-Heap Data Structure.
-    
-    Priority Queue is a data structure of binary tree with heap property
-    """
-    
-    # Representation invariant:
-    #   container : - contains the elements of the priority queue
-    #               - there is no empty elements in the list.
-    #               - key of element at index i is lower compared to 
-    #                 the key of elements at index 2*i + 1 and 2*i + 2.
+class Graph:
+    def __init__(self):
+        """
+        Initialize an empty graph
+        """
+        self.vertices: Set[Hashable] = set()
+        self.outbound_edges: Dict[Hashable, Dict[Hashable]] = dict()
+        self.inbound_edges: Dict[Hashable, Set[Hashable]] = dict()
 
-    #   _value_to_index: a mapping of value to its index in the
-    #                    container list.
-    
-    # Absraction function:
-    #   AF(container): priority queue nodes stored in a list,
-    #                  where the children of node stored at index i
-    #                  are stored at index 2*i + 1 and 2*i + 2 and
-    #                  the root is stored at index 0.
-
-    # Safety from rep exposure:
-    #   all the methods do not return a pointer to the representation
-
-    def __init__(self) -> None:
-        """Initializes a Priority Queue."""
-        self._container: list = []
-        self._value_to_index: set = {}
-
-    class PriorityQueueNode:
-        def __init__(self, key: int|float, value) -> None:
-            """Initializes a node for Priority Queue that stores the
-            key and value pair.
-
-            Args:
-            key: takes an integer / float as the key.
-            value: any immutable data types.
-            """
-            self.key = key
-            self.value = value
-
-    ### MAIN FUNCTIONS ###
-
-    def insert(self, key: int|float, value) -> None:
-        """Insert a key and value pair to the Priority Queue.
-        
-        Preconditions:
-        - Assumes no duplicate values
+    def add_vertex(self, vertex: Hashable) -> None:
+        """Add a vertex to the graph. The vertex name must be hashable
+        and unique.
 
         Args:
-        key: takes an integer / float as the key.
-        value: any immutable datatypes.
+            vertex: The vertex to add to the graph.
+
+        Raises:
+            TypeError: If the vertex name is not hashable.
+            ValueError: If the vertex is already in the graph.
+        """
+        if vertex.__eq__ is None or vertex.__hash__ is None:
+            raise TypeError("vertex name must be hashable")
+        if vertex in self.vertices:
+            raise ValueError("vertex already in graph")
+        self.vertices.add(vertex)
+
+    def remove_vertex(self, vertex: Hashable) -> None:
+        """Remove a vertex and its associated edges from the graph.
+            
+        This method removes the specified vertex from the graph's vertices set,
+        and deletes all edges (both inbound and outbound) associated with that vertex.
+
+        Args:
+            vertex: The vertex to be removed.
+
+        Raises:
+            ValueError: If the vertex is not in the graph.
+        """
+        if vertex not in self.vertices:
+            raise ValueError("vertex not in graph")
+        self.vertices.remove(vertex)
+
+        for edge in self.outbound_edges[vertex]:
+            self.inbound_edges[edge].remove(vertex)
+
+        for edge in self.inbound_edges[vertex]:
+            self.outbound_edges[edge].remove(vertex)
+
+        if vertex in self.outbound_edges:
+            del self.outbound_edges[vertex]
+
+        if vertex in self.inbound_edges:
+            del self.inbound_edges[vertex]
+
+    def add_edge(self, source: Hashable, destination: Hashable) -> None:
+        """Add a directed edge from source to destination.
+            
+        This method adds a directed edge from the source vertex to the destination vertex.
+
+        Args:
+            source: The source vertex.
+            destination: The destination vertex.
+
+        Raises:
+            ValueError: If the source or destination vertex is not in the graph.
+        """
+        self._check_vertices(source, destination)
+        
+        if not source in self.outbound_edges:
+            self.outbound_edges[source] = dict()
+        self.outbound_edges[source][destination] = None
+
+        if not destination in self.inbound_edges:
+            self.inbound_edges[destination] = set()
+        self.inbound_edges[destination].add(source)
+    
+    def remove_edge(self, source: Hashable, destination: Hashable) -> None:
+        """
+        Remove a directed edge from source to destination.
+
+        This method removes the directed edge from the source vertex to the destination
+        vertex in the graph.
+
+        Args:
+            source: The source vertex.
+            destination: The destination vertex.
+
+        Raises:
+            ValueError: If there is no edge from source to destination in the graph.
+        """
+        if not self.is_adjacent(source, destination):
+            raise ValueError("edge not in graph")
+        
+        del self.outbound_edges[source][destination]
+        self.inbound_edges[destination].remove(source)
+
+    def is_adjacent(self, source: Hashable, destination: Hashable) -> bool:
+        """
+        Check if there is a directed edge from source to destination.
+
+        This method returns True if and only if there is a directed edge from the
+        source vertex to the destination vertex in the graph, and False otherwise.
+
+        Args:
+            source: The source vertex.
+            destination: The destination vertex.
+
+        Returns:
+            bool: True if an edge from source to destination exists, False otherwise.
+        """
+        self._check_vertices(source, destination)
+        if source not in self.outbound_edges:
+            return False
+        return destination in self.outbound_edges[source]
+    
+    def set_edge_value(self,
+        source: Hashable,
+        destination: Hashable,
+        value: Any
+        ) -> None:
+        """
+        Set the value of an edge from source to destination.
+
+        This method sets the value associated with the edge from the source
+        vertex to the destination vertex in the graph.
+
+        Args:
+            source: The source vertex.
+            destination: The destination vertex.
+            value: The value to set on the edge.
+
+        Raises:
+            ValueError: If there is no edge from source to destination in the graph.
+        """
+        if not self.is_adjacent(source, destination):
+            raise ValueError("edge not in graph")
+        self.outbound_edges[source][destination] = value
+
+    def get_edge_value(self,
+        source: Hashable,
+        destination: Hashable,
+        ) -> Any:
+        """
+        Get the value associated with an edge from source to destination.
+
+        This method returns the value associated with the edge from the source
+        vertex to the destination vertex in the graph.
+
+        Args:
+            source: The source vertex.
+            destination: The destination vertex.
+
+        Returns:
+            Any: The value associated with the edge.
+
+        Raises:
+            ValueError: If there is no edge from source to destination in the graph.
+        """
+       
+        if not self.is_adjacent(source, destination):
+            raise ValueError("edge not in graph")
+        return self.outbound_edges[source][destination]
+
+    def _check_vertices(self, source: Hashable, destination: Hashable) -> None:
+        if source not in self.vertices:
+            raise ValueError("source vertex not in graph")
+        if destination not in self.vertices:
+            raise ValueError("destination vertex not in graph")
+        if source == destination:
+            raise ValueError("source and destination cannot be the same")
+
+class PriorityQueue:
+    """
+    A Priority Queue data structure that stores key and value pair.
+    Each node on the priority queue is ordered based on its key.
+
+    Methods:
+        insert(key, value): inserts a key and value pair to the
+            priority queue
+        extract_minimum(): returns the node with minimum key and removes
+            it from the priority queue
+        minimum(): returns the node with minimum key
+        is_empty(): returns True if and only if the priority queue is
+            empty
+    """
+
+    ### Abstraction Function:
+    #   the key value pairs in the priority queue is stored the
+    #   self._container list. The root of the priority queue is the
+    #   first element in the list. Each element's parents are
+    #   elements with index i // 2, and children are elements
+    #   with index 2i (left child) and 2i + 1 (right child) using 1
+    #   based indexing.
+    #   
+    #   self._value_to_index maps each value to its index in the
+    #   self._container list to help with decrease_key() method,
+
+    class PriorityQueueNode:
+        def __init__(self, key: int|float, value: Hashable) -> None:
+            if type(key) not in [int, float]:
+                raise TypeError("key must be an integer or float")
+            self.key: int|float = key
+            if value.__eq__ is None or value.__hash__ is None:
+                raise TypeError("value must be hashable")
+            self.value = value
+
+    def __init__(self) -> None:
+        """
+        Initializes an empty Priority Queue.
+        """
+        self._container: List[PriorityQueue.PriorityQueueNode] = []
+        self._value_to_index: dict[Any, int] = {}
+
+    def insert(self, key: int|float, value) -> None:
+        """
+        Inserts a key and value pair to the priority queue.
+
+        The key value pair is appended to the end of the priority queue and
+        then heapify up is called to maintain the priority queue property.
+
+        Args:
+            key: An integer or float representing the key of the key value pair.
+            value: A hashable object representing the value of the key value pair.
+
+        Raises:
+            ValueError: If the value is already in the priority queue.
         """
 
+        if value in self._value_to_index:
+            raise ValueError("value already in Priority Queue")
         self._container.append(self.PriorityQueueNode(key, value))
         index = len(self)
         self._value_to_index[value] = index
         self._heapify_up(index)
 
-    def extract_minimum(self):
+    def extract_minimum(self) -> Hashable:
         """Returns the value of key value pair with minimum key and
         removes the said key value pair.
 
@@ -67,68 +243,65 @@ class PriorityQueue:
         None if the Priority Queue is empty.
         the value of key value pair that has the lowest key otherwise.
         """
-        if len(self) == 0:
-            print("Queue is empty")
-        else:
-            min = self._container[0]
+        if self.is_empty():
+            raise IndexError("Priority Queue is empty")
+        
+        min = self._container[0]
 
-            self._container[0] = self._container[-1]
-            self._value_to_index[self._container[0]] = 0
+        self._container[0] = self._container[-1]
+        self._value_to_index[self._container[0]] = 0
 
-            self._container = self._container[:-1]
-            self._heapify_down(1)
+        self._container = self._container[:-1]
+        self._heapify_down(1)
 
-            return min.value
+        return min.value
     
     
-    def minimum(self):
+    def minimum(self) -> Hashable:
         """Returns the value of key value pair that has the lowest key.
 
         Returns:
         None if the Priority Queue is empty.
         the value of key value pair that has the lowest key otherwise.
         """
-        if self.is_empty(self):
-            print("Queue is empty")
-        else:
-            return self._container[0].value
+        if self.is_empty():
+            raise IndexError("Priority Queue is empty")
+        
+        return self._container[0].value
 
     """Reduce a key of a value"""
     def decrease_key(self, value, new_key: int|float)->None:
         index = self._value_to_index[value]
-        if self._container[index-1].key > new_key:
-            self._container[index-1].key = new_key
-            self._heapify_up(index)
+
+        if self._container[index-1].key < new_key:
+            raise ValueError("new key is larger than current key")
+        
+        self._container[index-1].key = new_key
+        self._heapify_up(index)
 
     def is_empty(self) -> bool:
         """Check if the Priority Queue is empty.
 
         Returns: 
-        true iff the Priority Queue has no element
+        true if and only if the Priority Queue has no element
         """
         return len(self) == 0
         
-    def __len__(self) -> int:    
-        """Overload for function len()
-        Returns:
-        the number of element in the Priority Queue"""
+    def __len__(self) -> int:
+        """Returns the number of elements in the Priority Queue."""
         return len(self._container)
     
-    ### AUXILIARY FUNCTIONS ###
-
     def _heapify_down(self, index: int) -> None:
-        """Pefroms "bubble down" on the node at index,
-        if it is larger than one of its children."""
+        """Pefroms "bubble down" on the node at index, if it is larger
+        than one of its children."""
         left = self._left(index)
         right = self._right(index)
 
-        # compare current node's key with left and right child's key,
-        # find the index of element with smallest key
         smallest = index
         if left <= len(self):
             if self._container[smallest-1].key > self._container[left-1].key:
                 smallest = left
-        if right <= self.len:
+        if right <= len(self):
             if self._container[smallest-1].key > self._container[right-1].key:
                 smallest = right
         
@@ -168,7 +341,7 @@ class PriorityQueue:
     
     def _update_value_to_index(self, index: int) -> None:
         """Updates the value to index mapping"""
-        self._value_to_index[self._container[index-1]] = index
+        self._value_to_index[self._container[index-1].value] = index
 
 class BinomialHeap:
     """Binomial Heap data structure.
@@ -179,17 +352,15 @@ class BinomialHeap:
     children) have 2^k nodes."""
 
     class BinomialTreeNode:
-        """A node of binomial tree.
-        
-        Attributes: 
-        a pointer to its parent node
-        a key
-        a pointer to value / value
-        a degree value (number of children)
-        a pointer to its leftmost child
-        a pointer to its sibling on its immediate right"""
+        """A node of binomial tree"""
 
         def __init__(self, key: int|float, value) -> None:
+            """Initializes a node of binomial tree.
+
+            Args:
+            key: takes an integer or float as the key.
+            value: any immutable data types.
+            """
             self.key: int|float = key
             self.value: any = value
             self.parent: Self|None = None
@@ -198,7 +369,7 @@ class BinomialHeap:
             self.sibling: Self|None = None
     
     def __init__(self) -> None:
-        self._head: self.BinomialTreeNode = None
+        self._head: BinomialHeap.BinomialTreeNode = None
         self._len: int = 0
 
     def is_empty(self) -> bool:
@@ -872,89 +1043,3 @@ class RedBlackTree:
 
     def check_redblack_property(self):
         self.root.check_redblack_property()
-
-class Graph():
-
-    ### initialization function, expects an integer which is the number of vertices
-    def __init__(self, NumberOfVertices):
-
-        # set all the edge weights in adjacency matrix to infinite (infinity weight here means the edged does not exist) or zero for all vertex to itself 
-        self.__AdjacencyMatrix = [[float("inf") if i!=j else 0.0 for i in range(NumberOfVertices)] for j in range(NumberOfVertices)]
-
-        # create a list that maps vertex index (int) to its name (int). set the default values (its index)
-        self.__VertexName = [str(i) for i in range(NumberOfVertices)]
-
-        # save the number of vertices
-        self.__NumberOfVertices = NumberOfVertices
-
-    ### the two function below returns and sets the vertex name given the vertex index
-    def GetNodeName(self, VertexIndex):
-        return self.__VertexName[VertexIndex]
-    
-    def SetNodeName(self, VertexIndex, VertexName):
-        self.__VertexName[VertexIndex] = VertexName
-
-    ### the two function below returns and sets the vertex weight given the source vertex and the destination vertex
-    def GetEdgeWeight(self, source, destination):
-        return self.__AdjacencyMatrix[source][destination]
-    def SetEdgeWeight(self, source, destination, weight):
-        self.__AdjacencyMatrix[source][destination] = weight
-    
-    ### the two function below returns the number of vertices and edges
-    def VerticesCount(self):
-        return self.__NumberOfVertices
-    def EdgesCount(self):
-        count = 0
-        for source in range(self.__NumberOfVertices):
-            for destination in range(self.__NumberOfVertices):
-                if self.__AdjacencyMatrix[source][destination] != float("inf") and self.__AdjacencyMatrix[source][destination] != float(0.0):
-                    count += 1
-        return count
-    
-    ### function to check if the given source vertex and destination vertex is adjacent
-    def IsAdjacent(self, source, destination):
-        return self.__AdjacencyMatrix[source][destination] != 0.0 and self.__AdjacencyMatrix[source][destination] != float("inf")
-
-    ### function that returns the neighbor indices of a given source node
-    def FindNeighbors(self, source):
-        neighbors = []
-
-        # iterate through the adjacency matrix
-        for neighbor in self.__AdjacencyMatrix[source]:
-
-            # if the neighbors
-            if neighbor != float("inf") and neighbor!=0.0:
-                neighbors.append(neighbor)
-        return neighbors
-    
-    ### function to generate random edges in a graph, the function assumes the current graph does not have any edges
-    def GenerateRandomEdges(self, GraphDensity, MinDistance, MaxDistance, IsDirectedGraph = False):
-
-        # density (float) is the ratio of existing edges (not including edges from vertex to itself) and (number of vertices - 1) squared
-        # MinDistace and MaxDistance (floats) are the range of the distance generated
-        # IsDirected is the number of
-        from random import random, uniform
-
-        # iterate through the adjacency matrix
-        for source in range(self.__NumberOfVertices):
-            for destination in range(source+1, self.__NumberOfVertices):
-
-                # generate random float [0,1] if smaller or equal to the density, generate an edge
-                if uniform(0, 1) <= GraphDensity:
-
-                    # set the distance between min and max distance
-                    self.__AdjacencyMatrix[source][destination] = uniform(MinDistance, MaxDistance)
-                    
-                # if the graph is directed
-                if IsDirectedGraph:
-
-                    # repeat the edge generation process for the mirroring position in the matrix
-                    if uniform(0, 1) <= GraphDensity:
-                        self.__AdjacencyMatrix[destination][source] = uniform(MinDistance, MaxDistance)
-                
-                # if the graph is not directed
-                else:
-
-                    # set the same distance for the mirroring position in the matrix
-                    self.__AdjacencyMatrix[destination][source] = self.__AdjacencyMatrix[source][destination]
-
