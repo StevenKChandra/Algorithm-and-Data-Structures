@@ -97,5 +97,63 @@ class TestPriorityQueue(unittest.TestCase):
         with self.assertRaises(ValueError):
             pq.insert(2, "high priority")
 
+import unittest
+from data_structures import FibonacciHeap
+
+class TestFibonacciHeap(unittest.TestCase):
+
+    def test_insert(self):
+        heap = FibonacciHeap()
+        heap.insert(5, "high priority")
+        heap.insert(3, "medium priority")
+        heap.insert(1, "low priority")
+
+        self.assertEqual(heap.minimum(), "low priority")
+
+    def test_extract_min(self):
+        heap = FibonacciHeap()
+        heap.insert(5, "high priority")
+        heap.insert(3, "medium priority")
+        heap.insert(1, "low priority")
+
+        self.assertEqual(heap.extract_min(), "low priority")
+        self.assertEqual(heap.minimum(), "medium priority")
+
+    def test_is_empty(self):
+        heap = FibonacciHeap()
+        self.assertTrue(heap.is_empty())
+
+        heap.insert(5, "high priority")
+        self.assertFalse(heap.is_empty())
+
+    def test_len(self):
+        heap = FibonacciHeap()
+        self.assertEqual(len(heap), 0)
+
+        heap.insert(5, "high priority")
+        self.assertEqual(len(heap), 1)
+
+        heap.insert(3, "medium priority")
+        self.assertEqual(len(heap), 2)
+
+    def test_add(self):
+        heap1 = FibonacciHeap()
+        heap1.insert(5, "high priority")
+        heap1.insert(3, "medium priority")
+
+        heap2 = FibonacciHeap()
+        heap2.insert(1, "low priority")
+        heap2.insert(2, "very low priority")
+
+        heap = heap1 + heap2
+        self.assertEqual(heap.minimum(), "low priority")
+
+    def test_value_already_exists(self):
+        heap = FibonacciHeap()
+        heap.insert(5, "high priority")
+
+        with self.assertRaises(ValueError):
+            heap.insert(10, "high priority")
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,9 +1,14 @@
 from typing import Self, List, Set, Hashable, Dict, Any
 
 class Graph:
+    """A directed graph data structure.
+
+    A graph is a collection of vertices and edges.
+    Edges in a graph might have values ascociated with them.
+    """
     def __init__(self):
         """
-        Initialize an empty graph
+        Initialize an empty graph.
         """
         self.vertices: Set[Hashable] = set()
         self.outbound_edges: Dict[Hashable, Dict[Hashable]] = dict()
@@ -29,8 +34,9 @@ class Graph:
     def remove_vertex(self, vertex: Hashable) -> None:
         """Remove a vertex and its associated edges from the graph.
             
-        This method removes the specified vertex from the graph's vertices set,
-        and deletes all edges (both inbound and outbound) associated with that vertex.
+        This method removes the specified vertex from the graph's
+        vertices set, and deletes all edges (both inbound and outbound)
+        associated with that vertex.
 
         Args:
             vertex: The vertex to be removed.
@@ -42,29 +48,30 @@ class Graph:
             raise ValueError("vertex not in graph")
         self.vertices.remove(vertex)
 
-        for edge in self.outbound_edges[vertex]:
-            self.inbound_edges[edge].remove(vertex)
-
-        for edge in self.inbound_edges[vertex]:
-            self.outbound_edges[edge].remove(vertex)
-
         if vertex in self.outbound_edges:
-            del self.outbound_edges[vertex]
+            for edge in self.outbound_edges[vertex]:
+                self.inbound_edges[edge].remove(vertex)
+            del self.inbound_edges[vertex]
 
         if vertex in self.inbound_edges:
-            del self.inbound_edges[vertex]
+            for edge in self.inbound_edges[vertex]:
+                self.outbound_edges[edge].remove(vertex)
+                
+            del self.outbound_edges[vertex]
 
     def add_edge(self, source: Hashable, destination: Hashable) -> None:
         """Add a directed edge from source to destination.
             
-        This method adds a directed edge from the source vertex to the destination vertex.
+        This method adds a directed edge from the source vertex to the
+        destination vertex.
 
         Args:
             source: The source vertex.
             destination: The destination vertex.
 
         Raises:
-            ValueError: If the source or destination vertex is not in the graph.
+            ValueError: If the source or destination vertex is not in
+                the graph.
         """
         self._check_vertices(source, destination)
         
@@ -80,15 +87,16 @@ class Graph:
         """
         Remove a directed edge from source to destination.
 
-        This method removes the directed edge from the source vertex to the destination
-        vertex in the graph.
+        This method removes the directed edge from the source vertex to
+        the destination vertex in the graph.
 
         Args:
             source: The source vertex.
             destination: The destination vertex.
 
         Raises:
-            ValueError: If there is no edge from source to destination in the graph.
+            ValueError: If there is no edge from source to destination
+                in the graph.
         """
         if not self.is_adjacent(source, destination):
             raise ValueError("edge not in graph")
@@ -100,15 +108,13 @@ class Graph:
         """
         Check if there is a directed edge from source to destination.
 
-        This method returns True if and only if there is a directed edge from the
-        source vertex to the destination vertex in the graph, and False otherwise.
-
         Args:
             source: The source vertex.
             destination: The destination vertex.
 
         Returns:
-            bool: True if an edge from source to destination exists, False otherwise.
+            bool: True if an edge from source to destination exists,
+                False otherwise.
         """
         self._check_vertices(source, destination)
         if source not in self.outbound_edges:
@@ -123,8 +129,8 @@ class Graph:
         """
         Set the value of an edge from source to destination.
 
-        This method sets the value associated with the edge from the source
-        vertex to the destination vertex in the graph.
+        This method sets the value associated with the edge from the
+        source vertex to the destination vertex in the graph.
 
         Args:
             source: The source vertex.
@@ -132,7 +138,8 @@ class Graph:
             value: The value to set on the edge.
 
         Raises:
-            ValueError: If there is no edge from source to destination in the graph.
+            ValueError: If there is no edge from source to destination
+                in the graph.
         """
         if not self.is_adjacent(source, destination):
             raise ValueError("edge not in graph")
@@ -145,8 +152,8 @@ class Graph:
         """
         Get the value associated with an edge from source to destination.
 
-        This method returns the value associated with the edge from the source
-        vertex to the destination vertex in the graph.
+        This method returns the value associated with the edge from the
+        source vertex to the destination vertex in the graph.
 
         Args:
             source: The source vertex.
@@ -156,7 +163,8 @@ class Graph:
             Any: The value associated with the edge.
 
         Raises:
-            ValueError: If there is no edge from source to destination in the graph.
+            ValueError: If there is no edge from source to destination
+                in the graph.
         """
        
         if not self.is_adjacent(source, destination):
@@ -172,18 +180,11 @@ class Graph:
             raise ValueError("source and destination cannot be the same")
 
 class PriorityQueue:
-    """
-    A Priority Queue data structure that stores key and value pair.
-    Each node on the priority queue is ordered based on its key.
+    """A Priority Queue data structure that stores key and value pair.
 
-    Methods:
-        insert(key, value): inserts a key and value pair to the
-            priority queue
-        extract_minimum(): returns the node with minimum key and removes
-            it from the priority queue
-        minimum(): returns the node with minimum key
-        is_empty(): returns True if and only if the priority queue is
-            empty
+    Each node on the priority queue is ordered based on its key in a 
+    binary heap. All nodes in a priority queue have lower key value
+    than its children.
     """
 
     ### Abstraction Function:
@@ -217,12 +218,11 @@ class PriorityQueue:
         """
         Inserts a key and value pair to the priority queue.
 
-        The key value pair is appended to the end of the priority queue and
-        then heapify up is called to maintain the priority queue property.
-
         Args:
-            key: An integer or float representing the key of the key value pair.
-            value: A hashable object representing the value of the key value pair.
+            key: An integer or float representing the key of the
+                key-value pair.
+            value: A hashable object representing the value of the
+                key-value pair.
 
         Raises:
             ValueError: If the value is already in the priority queue.
@@ -348,18 +348,23 @@ class BinomialHeap:
     
     Binomial heap is a collection of binomial trees that is heap ordered
     (all node's key is smaller than its children's key)
+
     A binomial tree with degree k (k is the number of the root's node
-    children) have 2^k nodes."""
+    children) have 2^k nodes.
+    """
 
     class BinomialTreeNode:
         """A node of binomial tree"""
 
-        def __init__(self, key: int|float, value) -> None:
-            """Initializes a node of binomial tree.
+        def __init__(self, key: int|float, value: Hashable) -> None:
+            """
+            Initializes a BinomialTreeNode with the given key and value.
 
             Args:
-            key: takes an integer or float as the key.
-            value: any immutable data types.
+                key: The key of the node, which should be an integer
+                    or a float.
+                value: The value associated with the node, which must
+                    be hashable.
             """
             self.key: int|float = key
             self.value: any = value
@@ -369,15 +374,37 @@ class BinomialHeap:
             self.sibling: Self|None = None
     
     def __init__(self) -> None:
+        """
+        Initializes an empty BinomialHeap.
+        """
+        self._value_pointer: Dict[Hashable, BinomialHeap.BinomialTreeNode] = dict()
         self._head: BinomialHeap.BinomialTreeNode = None
         self._len: int = 0
 
     def is_empty(self) -> bool:
+        """
+        Check if the Binomial Heap is empty.
+
+        Returns:
+            bool: True if the heap is empty, False otherwise.
+        """
         return len(self) == 0
     
     def minimum(self):
+        """
+        Finds and returns the value associated with the minimum key in
+        the binomial heap.
+
+        If the binomial heap is empty, an IndexError is raised.
+
+        Returns:
+            The value associated with the minimum key.
+
+        Raises:
+            IndexError: If the binomial heap is empty.
+        """
         if (len(self) == 0):
-            print("Binomial heap is empty.")
+            IndexError("Binomial Heap is empty")
             return
         val = None
         pointer = self._head
@@ -389,82 +416,49 @@ class BinomialHeap:
         return val
     
     def insert(self, key: int|float, value) -> None:
+        """
+        Inserts a new key-value pair into the binomial heap.
+
+        Args:
+            key (int|float): The key for the new node, which must be an integer or float.
+            value (Hashable): The value associated with the new node, which must be hashable.
+
+        Raises:
+            TypeError: If the key is not an integer or float.
+            ValueError: If the value already exists in the heap.
+        """
+        if type(key) not in [int, float]:
+            raise TypeError("key must be an integer or float")
+        if key in self._value_pointer:
+            raise ValueError("value already exists in the heap")
+        
+        node = self.BinomialTreeNode(key, value)
+                
         heap = BinomialHeap()
-        head = self.BinomialTreeNode(key, value)
-        heap._head = head
+        heap._value_pointer[value] = node
+        heap._head = node
         heap._len = 1
+
         heap = self + heap
+
         self._head = heap._head
         self._len = heap._len
-
-    def _binomial_heap_merge(self, other):
-        if self.is_empty() or other.is_empty():
-            return self if other.is_empty() else other
+        self._value_pointer = heap._value_pointer
         
-        new_head = self.BinomialTreeNode(0, None)
-        pointer = new_head
-
-        while (self._head != None and other._head != None):
-            if self._head.degree < other._head.degree:
-                pointer.sibling = self._head
-                self._head = self._head.sibling
-                pointer = pointer.sibling
-            else:
-                pointer.sibling = other._head
-                other._head = other._head.sibling
-                pointer = pointer.sibling
-
-        pointer.sibling = other._head if self._head == None else self._head
-        self._head = new_head.sibling
-        self._len += other._len
-
-        return self
-    
-    def __add__(self, other):
-        heap = self._binomial_heap_merge(other)
-        if (heap._head == None):
-            return heap
-        prev_x = None
-        x = heap._head
-        next_x = x.sibling
-        while (next_x != None):
-            if (x.degree != next_x.degree or 
-                (next_x.sibling != None and 
-                 next_x.sibling.degree == x.degree)):
-                prev_x = x
-                x = next_x
-            elif (x.key <= next_x.key):
-                x.sibling = next_x.sibling
-                self._binomial_link(next_x, x)
-            else:
-                if prev_x == None:
-                    heap._head = next_x
-                else:
-                    prev_x.sibling = next_x
-                self._binomial_link(x, next_x)
-                x = next_x
-            next_x = x.sibling
-        return heap
-    
-    def find_min(self):
-        if len(self) == 0:
-            print("heap is empty")
-
-        minimum = float('inf')
-        minimum_node = None
-
-        x = self._head
-        while x != None:
-            if x.key < minimum:
-                minimum = x.key
-                minimum_node = x
-            x = x.sibling
-
-        return minimum_node.value
-    
     def extract_min(self):
+        """
+        Extracts the node with the minimum key from the binomial
+        heap and returns its value.
+
+        The function traverses the heap to find the node with the
+        minimum key, removes it, and restructures the heap to
+        maintain the binomial heap properties.
+
+        Raises:
+            IndexError: If the binomial heap is empty.
+        """
         if len(self) == 0:
-            print("heap is empty")
+            raise IndexError("Binomial Heap is empty")
 
         minimum = float('inf')
         minimum_node = None
@@ -507,6 +501,118 @@ class BinomialHeap:
         new_heap = self + new_heap
         self._head = new_heap._head
         self._len = new_heap._len
+    
+    def decrease_key(self, value, new_key):
+        """
+        Decreases the key of the node associated with the given value in
+        the binomial heap.
+
+        Args:
+            value (Hashable): The value associated with the node whose
+                key is to be decreased.
+            new_key (int|float): The new key to be associated with the
+                node.
+
+        Raises:
+            ValueError: If the value does not exist in the heap, or if
+                the new key is greater than the current key.
+        """
+        if value not in self._value_pointer:
+            raise ValueError("value does not exist in the heap")
+        
+        if new_key >= self._value_pointer[value].key:
+            raise ValueError("new key is greater than the current key")
+        
+        node = self._value_pointer[value]
+        parent = node.parent
+
+        node.key = new_key
+
+        while node.parent != None and node.key < parent.key:
+            node.key, parent.key = parent.key, node.key
+            node.value, parent.value = parent.value, node.value
+            self._value_pointer[node.value] = node
+            self._value_pointer[parent.value] = parent
+            node = parent
+            parent = parent.parent
+
+    def delete(self, value):
+        """
+        Deletes the node associated with the given value from the
+        binomial heap.
+
+        Args:
+            value (Hashable): The value associated with the node to be
+                deleted.
+
+        Raises:
+            ValueError: If the value does not exist in the heap.
+        """
+        self.decrease_key(value, float('-inf'))
+        self.extract_min()
+
+    def _binomial_heap_merge(self, other):
+        """
+        Merges two binomial heaps together into a single binomial heap.
+
+        Args:
+            other (BinomialHeap): The other heap to be merged.
+
+        Returns:
+            BinomialHeap: The merged heap.
+        """
+        if self.is_empty() or other.is_empty():
+            return self if other.is_empty() else other
+
+        new_head = self.BinomialTreeNode(0, None)
+        pointer = new_head
+
+        while (self._head != None and other._head != None):
+            if self._head.degree < other._head.degree:
+                pointer.sibling = self._head
+                self._head = self._head.sibling
+                pointer = pointer.sibling
+            else:
+                pointer.sibling = other._head
+                other._head = other._head.sibling
+                pointer = pointer.sibling
+
+        pointer.sibling = other._head if self._head == None else self._head
+        self._head = new_head.sibling
+        self._value_pointer = self._value_pointer | other._value_pointer
+        self._len += other._len
+
+        return self
+    
+    def __add__(self, other):
+        if other is not BinomialHeap:
+            raise TypeError(f"unsupported operand type(s) for +: 'BinomialHeap' and '{type(other)}'.")
+        if not self._value_pointer.keys().isdisjoint(other._value_pointer.keys()):
+            raise ValueError("duplicate values in the heap")
+        heap = self._binomial_heap_merge(other)
+        if (heap._head == None):
+            return heap
+        prev_x = None
+        x = heap._head
+        next_x = x.sibling
+        while (next_x != None):
+            if (x.degree != next_x.degree or 
+                (next_x.sibling != None and 
+                 next_x.sibling.degree == x.degree)):
+                prev_x = x
+                x = next_x
+            elif (x.key <= next_x.key):
+                x.sibling = next_x.sibling
+                self._binomial_link(next_x, x)
+            else:
+                if prev_x == None:
+                    heap._head = next_x
+                else:
+                    prev_x.sibling = next_x
+                self._binomial_link(x, next_x)
+                x = next_x
+            next_x = x.sibling
+        return heap
 
     def _binomial_link(self, x, y):
         x.parent = y
@@ -516,7 +622,199 @@ class BinomialHeap:
 
     def __len__(self) -> int:
         return self._len
+
+class FibonacciHeap:
+    class FibonacciHeapNode:
+        def __init__(self, key: int|float, value: Hashable) -> None:
+            if type(key) not in [int, float]:
+                raise TypeError("key must be an integer or float")
+            if value.__eq__ is None or value.__hash__ is None:
+                raise TypeError("value must be hashable")
+            self.key = key
+            self.value = value
+            self.degree = 0
+            self.mark = False
+            self.parent = None
+            self.left = self
+            self.right = self
+            self.child = None
+
+        def __add__(self,
+            other: "FibonacciHeap.FibonacciHeapNode" = None
+            ) -> "FibonacciHeap.FibonacciHeapNode":
+            if other is None:
+                return self
+            
+            self_next = self.right
+            other_next = other.right
+
+            self.right = other
+            other.left = self
+            self_next.left = other_next
+            other_next.right = self_next
+
+            return self
+        
+        def __len__(self) -> int:
+            pointer = self
+            count = 1
+            while pointer.right != self:
+                pointer = pointer.right
+                count += 1
+            return count
+        
+        def remove(self) -> None:
+            self.left.right = self.right
+            self.right.left = self.left
+            
+            self.right = self
+            self.left = self
+
+        def link(self, other: "FibonacciHeap.FibonacciHeapNode"):
+            other.remove()
+            self.child = other + self.child
+            other.parent = self
+            self.degree += 1
+            other.mark = False
+        
+    def __init__(self) -> None:
+        """
+        Initializes an empty FibonacciHeap.
+        """
+        
+        self._min = None
+        self._len = 0
+        self._value_pointer = dict()
     
+    def is_empty(self) -> bool:
+        """
+        Check if the Fibonacci Heap is empty.
+
+        Returns:
+            bool: True if the heap is empty, False otherwise.
+        """
+        
+        return len(self) == 0
+
+    def insert(self, key: int|float, value: Hashable) -> None:
+        """
+        Inserts a key and value pair to the FibonacciHeap.
+
+        Args:
+            key: An integer or float representing the key of the key
+                value pair.
+            value: A hashable object representing the value of the key
+                value pair.
+
+        Raises:
+            TypeError: If the key is not an integer or float.
+            ValueError: If the value is not hashable.
+            ValueError: If the value is already in the heap.
+            
+        """
+        node = self.FibonacciHeapNode(key, value)
+        if value in self._value_pointer:
+            raise ValueError("value already exists in the heap")
+        if self._min == None:
+            self._min = node
+        else:
+            self._min += node
+            if node.key < self._min.key:
+                self._min = node
+        self._value_pointer[value] = node
+        self._len += 1
+
+    def minimum(self) -> Hashable:
+        """
+        Returns the value associated with the minimum key in the
+        FibonacciHeap.
+
+        Returns:
+            The value associated with the minimum key.
+
+        Raises:
+            IndexError: If the FibonacciHeap is empty.
+        """
+        return self._min.value
+    
+    def extract_min(self) -> Hashable:
+        """
+        Returns the value associated with the minimum key in the
+        FibonacciHeap and removes the said key value pair.
+
+        Returns:
+            The value associated with the minimum key.
+
+        Raises:
+            IndexError: If the FibonacciHeap is empty.
+        """
+        if self.is_empty():
+            raise IndexError("Fibonacci Heap is empty")
+        
+        value = self._min.value
+
+        if self._min.child != None:
+            pointer = self._min.child
+            while pointer != self._min.child:
+                pointer.parent = None
+            self._min += self._min.child
+        
+        if self._min.right == self._min:
+            self._min = None
+        else:
+            temp = self._min.right
+            self._min.remove()
+            self._min = temp
+            self._consolidate()
+        self._len -= 1
+        del self._value_pointer[value]
+        return value
+    
+    def _consolidate(self):
+        placeholder = dict()
+        pointer = self._min
+        for i in range(len(self._min)):
+            next = pointer.right
+            while pointer.degree in placeholder:
+                if pointer.key > placeholder[pointer.degree].key:
+                    temp = pointer
+                    pointer = placeholder[pointer.degree]
+                    placeholder[pointer.degree] = temp
+                pointer.link(placeholder[pointer.degree])
+                del placeholder[pointer.degree-1]
+            placeholder[pointer.degree] = pointer
+            pointer = next
+
+        minimum = BinomialHeap.BinomialTreeNode(float("inf"), None)
+        for node in placeholder.values():
+            if node != None:
+                if node.key < minimum.key:
+                    minimum = node
+        self._min = minimum
+
+    def __add__(self, other):
+        if type(other) is not FibonacciHeap:
+            raise TypeError(f"unsupported operand type(s) for +: 'FibonacciHeap' and '{type(other)}'.")
+        if not self._value_pointer.keys().isdisjoint(other._value_pointer.keys()):
+            raise ValueError("duplicate values in the heap")
+        if len(self) == 0:
+            return other
+        if len(other) == 0:
+            return self
+        self._min = self._min + other._min
+        heap = FibonacciHeap()
+        if self._min.key < other._min.key:
+            heap._min = self._min
+        else:
+            heap._min = other._min
+        heap._len = self._len + other._len
+        heap._value_pointer = self._value_pointer | other._value_pointer
+        return heap
+
+    def __len__(self) -> int:
+        return self._len
+
+
 class RedBlackTree:
 
     ### ON START ###
